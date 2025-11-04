@@ -1,0 +1,49 @@
+Rapport Financier 2024
+=====================
+
+Société: Entreprise Test SA
+Période: Année 2024
+
+COMPTE DE RÉSULTAT
+------------------
+
+Chiffre d'affaires: 1,500,000 €
+Coût des ventes: -900,000 €
+Marge brute: 600,000 €
+
+Charges opérationnelles: -350,000 €
+Résultat opérationnel: 250,000 €
+
+Charges financières: -20,000 €
+Résultat avant impôts: 230,000 €
+
+Impôts: -69,000 €
+Résultat net: 161,000 €
+
+BILAN
+-----
+
+ACTIF:
+- Actifs courants: 450,000 €
+  - Trésorerie: 180,000 €
+  - Créances clients: 200,000 €
+  - Stocks: 70,000 €
+- Actifs non courants: 550,000 €
+  - Immobilisations: 550,000 €
+
+TOTAL ACTIF: 1,000,000 €
+
+PASSIF:
+- Passifs courants: 250,000 €
+  - Dettes fournisseurs: 150,000 €
+  - Dettes fiscales: 100,000 €
+- Passifs non courants: 300,000 €
+  - Emprunts bancaires: 300,000 €
+- Capitaux propres: 450,000 €
+
+TOTAL PASSIF: 1,000,000 €
+
+DONNÉES COMPARATIVES 2023
+------------------------
+Chiffre d'affaires 2023: 1,200,000 €
+Résultat net 2023: 120,000 €

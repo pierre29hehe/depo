@@ -1,7 +1,13 @@
 # Analyseur de Rapports Financiers - Dépendances Python
 
-# API IA
+# API IA - Cloud (optionnel)
 anthropic>=0.39.0
+
+# IA Locale - Ollama
+ollama>=0.3.0
+
+# Open Interpreter pour exécution de code
+open-interpreter>=0.2.0
 
 # Lecture de fichiers PDF
 PyPDF2>=3.0.0
@@ -16,3 +22,4 @@ numpy>=1.24.0
 
 # Utilitaires
 python-dotenv>=1.0.0
+requests>=2.31.0

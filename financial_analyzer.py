@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Analyseur de Rapports Financiers avec IA
-Utilise Claude AI pour analyser des rapports financiers et effectuer des calculs
+Supporte les modèles locaux (Ollama) et cloud (Anthropic)
 """
 
 import argparse
@@ -10,55 +10,266 @@ import os
 import sys
 from pathlib import Path
 from typing import Dict, List, Optional
+import subprocess
 
 # Imports pour la lecture de fichiers
 try:
     import PyPDF2
     import pdfplumber
     import pandas as pd
-    from anthropic import Anthropic
 except ImportError as e:
     print(f"❌ Erreur: Dépendance manquante. Exécutez: pip install -r requirements.txt")
     print(f"   Détail: {e}")
     sys.exit(1)
 
 
+class AIBackend:
+    """Classe de base pour les backends d'IA"""
+
+    def __init__(self, model_name: str):
+        self.model_name = model_name
+
+    def analyze(self, prompt: str) -> Dict:
+        raise NotImplementedError
+
+
+class OllamaBackend(AIBackend):
+    """Backend pour Ollama (modèles locaux)"""
+
+    def __init__(self, model_name: str = "mistral:7b-instruct"):
+        super().__init__(model_name)
+        try:
+            import ollama
+            self.client = ollama
+            self.available = True
+        except ImportError:
+            self.available = False
+            print("⚠️  Module ollama non installé. Utilisez: pip install ollama")
+
+    def check_ollama_running(self) -> bool:
+        """Vérifie si Ollama est en cours d'exécution"""
+        try:
+            result = subprocess.run(
+                ["ollama", "list"],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            return result.returncode == 0
+        except Exception:
+            return False
+
+    def list_models(self) -> List[str]:
+        """Liste les modèles disponibles dans Ollama"""
+        try:
+            result = subprocess.run(
+                ["ollama", "list"],
+                capture_output=True,
+                text=True,
+                timeout=5
+            )
+            if result.returncode == 0:
+                lines = result.stdout.strip().split('\n')[1:]  # Skip header
+                models = [line.split()[0] for line in lines if line.strip()]
+                return models
+            return []
+        except Exception as e:
+            print(f"⚠️  Erreur lors de la liste des modèles: {e}")
+            return []
+
+    def analyze(self, prompt: str) -> Dict:
+        """Analyse avec Ollama"""
+        if not self.available:
+            return {
+                "success": False,
+                "error": "Module ollama non disponible"
+            }
+
+        if not self.check_ollama_running():
+            return {
+                "success": False,
+                "error": "Ollama n'est pas en cours d'exécution. Lancez: ollama serve"
+            }
+
+        try:
+            print(f"🤖 Analyse avec {self.model_name} (Ollama local)...")
+
+            response = self.client.chat(
+                model=self.model_name,
+                messages=[
+                    {
+                        'role': 'user',
+                        'content': prompt
+                    }
+                ]
+            )
+
+            return {
+                "success": True,
+                "analysis": response['message']['content'],
+                "model": self.model_name,
+                "backend": "ollama"
+            }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Erreur Ollama: {str(e)}"
+            }
+
+
+class OpenInterpreterBackend(AIBackend):
+    """Backend pour Open Interpreter"""
+
+    def __init__(self, model_name: str = "ollama/mistral:7b-instruct"):
+        super().__init__(model_name)
+        try:
+            import interpreter
+            self.interpreter = interpreter
+            self.interpreter.llm.model = model_name
+            self.interpreter.auto_run = True
+            self.interpreter.offline = True  # Mode local
+            self.available = True
+        except ImportError:
+            self.available = False
+            print("⚠️  Module interpreter non installé. Utilisez: pip install open-interpreter")
+
+    def analyze(self, prompt: str) -> Dict:
+        """Analyse avec Open Interpreter"""
+        if not self.available:
+            return {
+                "success": False,
+                "error": "Module open-interpreter non disponible"
+            }
+
+        try:
+            print(f"🤖 Analyse avec Open Interpreter ({self.model_name})...")
+
+            # Open Interpreter peut exécuter du code pour faire les calculs
+            enhanced_prompt = f"""
+{prompt}
+
+Si nécessaire, écris et exécute du code Python pour effectuer les calculs financiers.
+Utilise pandas, numpy pour les calculs complexes.
+"""
+
+            messages = self.interpreter.chat(enhanced_prompt, display=False, stream=False)
+
+            # Extraire le texte de la réponse
+            analysis_text = ""
+            for msg in messages:
+                if msg.get("type") == "message" and msg.get("role") == "assistant":
+                    analysis_text += msg.get("content", "")
+
+            return {
+                "success": True,
+                "analysis": analysis_text,
+                "model": self.model_name,
+                "backend": "open-interpreter"
+            }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Erreur Open Interpreter: {str(e)}"
+            }
+
+
+class AnthropicBackend(AIBackend):
+    """Backend pour Anthropic Claude (cloud)"""
+
+    def __init__(self, api_key: str, model_name: str = "claude-3-5-sonnet-20241022"):
+        super().__init__(model_name)
+        try:
+            from anthropic import Anthropic
+            self.client = Anthropic(api_key=api_key)
+            self.available = True
+        except ImportError:
+            self.available = False
+            print("⚠️  Module anthropic non installé. Utilisez: pip install anthropic")
+
+    def analyze(self, prompt: str) -> Dict:
+        """Analyse avec Claude"""
+        if not self.available:
+            return {
+                "success": False,
+                "error": "Module anthropic non disponible"
+            }
+
+        try:
+            print(f"🤖 Analyse avec Claude AI ({self.model_name})...")
+
+            response = self.client.messages.create(
+                model=self.model_name,
+                max_tokens=4000,
+                messages=[
+                    {"role": "user", "content": prompt}
+                ]
+            )
+
+            return {
+                "success": True,
+                "analysis": response.content[0].text,
+                "model": self.model_name,
+                "tokens_used": response.usage.input_tokens + response.usage.output_tokens,
+                "backend": "anthropic"
+            }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Erreur Anthropic: {str(e)}"
+            }
+
+
 class FinancialReportAnalyzer:
     """Analyseur de rapports financiers utilisant l'IA"""
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(
+        self,
+        backend: str = "ollama",
+        model: Optional[str] = None,
+        api_key: Optional[str] = None
+    ):
         """
-        Initialise l'analyseur avec une clé API Anthropic
+        Initialise l'analyseur
 
         Args:
-            api_key: Clé API Anthropic (ou None pour charger depuis config.json)
+            backend: 'ollama', 'open-interpreter', ou 'anthropic'
+            model: Nom du modèle à utiliser
+            api_key: Clé API (pour Anthropic)
         """
-        if api_key is None:
-            api_key = self._load_api_key()
+        self.backend_type = backend
 
-        if not api_key:
-            raise ValueError(
-                "Clé API Anthropic non trouvée. "
-                "Créez un fichier config.json avec votre clé API."
-            )
+        # Charger la configuration
+        config = self._load_config()
 
-        self.client = Anthropic(api_key=api_key)
-        self.model = "claude-3-5-sonnet-20241022"
+        # Initialiser le backend approprié
+        if backend == "ollama":
+            model = model or config.get("default_model", "mistral:7b-instruct")
+            self.backend = OllamaBackend(model)
+        elif backend == "open-interpreter":
+            model = model or f"ollama/{config.get('default_model', 'mistral:7b-instruct')}"
+            self.backend = OpenInterpreterBackend(model)
+        elif backend == "anthropic":
+            api_key = api_key or config.get("anthropic_api_key") or os.environ.get("ANTHROPIC_API_KEY")
+            if not api_key:
+                raise ValueError("Clé API Anthropic requise pour ce backend")
+            model = model or config.get("anthropic_model", "claude-3-5-sonnet-20241022")
+            self.backend = AnthropicBackend(api_key, model)
+        else:
+            raise ValueError(f"Backend non supporté: {backend}")
 
-    def _load_api_key(self) -> Optional[str]:
-        """Charge la clé API depuis config.json ou variables d'environnement"""
-        # Essayer config.json
+    def _load_config(self) -> Dict:
+        """Charge la configuration depuis config.json"""
         config_path = Path("config.json")
         if config_path.exists():
             try:
                 with open(config_path) as f:
-                    config = json.load(f)
-                    return config.get("anthropic_api_key")
+                    return json.load(f)
             except Exception as e:
-                print(f"⚠️  Avertissement: Erreur lecture config.json: {e}")
-
-        # Essayer variable d'environnement
-        return os.environ.get("ANTHROPIC_API_KEY")
+                print(f"⚠️  Erreur lecture config.json: {e}")
+        return {}
 
     def read_file(self, file_path: str) -> str:
         """
@@ -159,8 +370,6 @@ class FinancialReportAnalyzer:
         Returns:
             Dictionnaire contenant l'analyse
         """
-        print(f"🤖 Analyse du rapport avec Claude AI...")
-
         # Définir le prompt selon les calculs demandés
         calculation_prompts = {
             "ratios": "calcule tous les ratios financiers pertinents (liquidité, solvabilité, etc.)",
@@ -171,10 +380,14 @@ class FinancialReportAnalyzer:
 
         calc_instruction = calculation_prompts.get(calculations, calculation_prompts["all"])
 
+        # Limiter la taille du texte selon le backend
+        max_chars = 50000 if self.backend_type == "ollama" else 15000
+        truncated_text = text[:max_chars]
+
         prompt = f"""Analyse ce rapport financier en français et {calc_instruction}.
 
 Rapport financier:
-{text[:15000]}  # Limiter à 15000 caractères pour l'API
+{truncated_text}
 
 Pour ton analyse:
 1. **Résumé**: Identifie le type de document et la période couverte
@@ -183,31 +396,9 @@ Pour ton analyse:
 4. **Analyse**: Interprète les résultats et identifie les points importants
 5. **Recommandations**: Suggère des points d'attention ou d'amélioration
 
-Présente les résultats de manière structurée et claire."""
+Présente les résultats de manière structurée et claire en français."""
 
-        try:
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=4000,
-                messages=[
-                    {"role": "user", "content": prompt}
-                ]
-            )
-
-            analysis_text = response.content[0].text
-
-            return {
-                "success": True,
-                "analysis": analysis_text,
-                "model": self.model,
-                "tokens_used": response.usage.input_tokens + response.usage.output_tokens
-            }
-
-        except Exception as e:
-            return {
-                "success": False,
-                "error": str(e)
-            }
+        return self.backend.analyze(prompt)
 
     def process_report(
         self,
@@ -282,8 +473,12 @@ def format_output(results: Dict, format_type: str = "text") -> str:
     output.append(f"📄 Fichier: {results.get('file', 'N/A')}")
     output.append(f"📏 Taille: {results.get('file_size', 0):,} octets")
     output.append(f"📝 Texte extrait: {results.get('text_length', 0):,} caractères")
-    output.append(f"🤖 Modèle: {results.get('model', 'N/A')}")
-    output.append(f"🎯 Tokens utilisés: {results.get('tokens_used', 'N/A'):,}")
+    output.append(f"🤖 Backend: {results.get('backend', 'N/A')}")
+    output.append(f"🎯 Modèle: {results.get('model', 'N/A')}")
+
+    if 'tokens_used' in results:
+        output.append(f"💰 Tokens utilisés: {results.get('tokens_used', 'N/A'):,}")
+
     output.append("")
     output.append("-" * 80)
     output.append("ANALYSE")
@@ -296,22 +491,68 @@ def format_output(results: Dict, format_type: str = "text") -> str:
     return "\n".join(output)
 
 
+def list_ollama_models():
+    """Liste les modèles Ollama disponibles"""
+    backend = OllamaBackend()
+    models = backend.list_models()
+
+    if models:
+        print("\n📋 Modèles Ollama disponibles:")
+        for model in models:
+            print(f"   - {model}")
+    else:
+        print("\n❌ Aucun modèle Ollama trouvé ou Ollama non installé")
+        print("   Installez Ollama: https://ollama.ai")
+        print("   Puis téléchargez un modèle: ollama pull mistral:7b-instruct")
+
+
 def main():
     """Point d'entrée principal du programme"""
     parser = argparse.ArgumentParser(
-        description="Analyseur de rapports financiers avec IA",
+        description="Analyseur de rapports financiers avec IA (local ou cloud)",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Exemples:
+  # Avec Ollama (local - par défaut)
   python financial_analyzer.py rapport.pdf
-  python financial_analyzer.py bilan.xlsx --calculations ratios
-  python financial_analyzer.py data.csv --output analyse.txt --format json
+  python financial_analyzer.py rapport.pdf --model llama3.1:8b
+
+  # Avec Open Interpreter
+  python financial_analyzer.py rapport.pdf --backend open-interpreter
+
+  # Avec Claude (cloud)
+  python financial_analyzer.py rapport.pdf --backend anthropic
+
+  # Lister les modèles Ollama disponibles
+  python financial_analyzer.py --list-models
+
+  # Avec options
+  python financial_analyzer.py bilan.xlsx --calculations ratios --output resultat.txt
         """
     )
 
     parser.add_argument(
         "file",
+        nargs="?",
         help="Chemin vers le rapport financier (PDF, Excel, CSV)"
+    )
+
+    parser.add_argument(
+        "--backend", "-b",
+        choices=["ollama", "open-interpreter", "anthropic"],
+        default="ollama",
+        help="Backend IA à utiliser (défaut: ollama)"
+    )
+
+    parser.add_argument(
+        "--model", "-m",
+        help="Modèle spécifique à utiliser"
+    )
+
+    parser.add_argument(
+        "--list-models",
+        action="store_true",
+        help="Afficher les modèles Ollama disponibles"
     )
 
     parser.add_argument(
@@ -336,20 +577,46 @@ Exemples:
 
     args = parser.parse_args()
 
+    # Si --list-models, afficher et quitter
+    if args.list_models:
+        list_ollama_models()
+        sys.exit(0)
+
+    # Vérifier qu'un fichier est fourni
+    if not args.file:
+        parser.print_help()
+        print("\n❌ Erreur: Vous devez fournir un fichier à analyser")
+        sys.exit(1)
+
     # Créer l'analyseur
     try:
-        analyzer = FinancialReportAnalyzer()
+        analyzer = FinancialReportAnalyzer(
+            backend=args.backend,
+            model=args.model
+        )
     except ValueError as e:
         print(f"❌ {e}")
-        print("\n💡 Pour obtenir une clé API gratuite:")
-        print("   1. Visitez: https://console.anthropic.com/")
-        print("   2. Créez un compte et générez une clé API")
-        print("   3. Créez un fichier config.json avec:")
-        print('      {"anthropic_api_key": "votre-clé-ici"}')
+        if args.backend == "anthropic":
+            print("\n💡 Pour utiliser Anthropic Claude:")
+            print("   1. Visitez: https://console.anthropic.com/")
+            print("   2. Créez un fichier config.json avec:")
+            print('      {"anthropic_api_key": "votre-clé-ici"}')
+        elif args.backend == "ollama":
+            print("\n💡 Pour utiliser Ollama:")
+            print("   1. Installez Ollama: https://ollama.ai")
+            print("   2. Lancez: ollama serve")
+            print("   3. Téléchargez un modèle: ollama pull mistral:7b-instruct")
+            print("\n   Modèles recommandés:")
+            print("   - mistral:7b-instruct (général)")
+            print("   - llama3.1:8b (performant)")
+            print("   - qwen2.5-coder:7b (calculs)")
+        sys.exit(1)
+    except Exception as e:
+        print(f"❌ Erreur lors de l'initialisation: {e}")
         sys.exit(1)
 
     # Traiter le rapport
-    print(f"\n🚀 Démarrage de l'analyse...")
+    print(f"\n🚀 Démarrage de l'analyse avec {args.backend}...")
     results = analyzer.process_report(args.file, args.calculations)
 
     # Formater les résultats

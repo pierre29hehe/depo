@@ -1,3 +1,20 @@
 {
-  "anthropic_api_key": "sk-ant-api03-VOTRE-CLE-API-ICI"
+  "comment": "Configuration pour l'analyseur de rapports financiers",
+
+  "_comment_default_model": "Modèle Ollama par défaut à utiliser",
+  "default_model": "mistral:7b-instruct",
+
+  "_comment_models_recommandes": "Modèles locaux Ollama recommandés:",
+  "_models_list": [
+    "mistral:7b-instruct - Excellent pour l'analyse générale en français",
+    "llama3.1:8b - Très performant, bon raisonnement",
+    "qwen2.5-coder:7b - Spécialisé en calculs et code",
+    "qwen2.5:7b - Bon équilibre performance/vitesse",
+    "deepseek-r1:8b - Excellent pour le raisonnement complexe",
+    "codellama:7b - Bon pour générer du code de calcul"
+  ],
+
+  "_comment_anthropic": "Pour utiliser Claude (cloud) - optionnel",
+  "anthropic_api_key": "",
+  "anthropic_model": "claude-3-5-sonnet-20241022"
 }

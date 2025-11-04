@@ -1,88 +1,245 @@
 # Analyseur de Rapports Financiers avec IA
 
-Programme Python qui utilise l'intelligence artificielle pour lire et analyser des rapports financiers automatiquement.
+Programme Python qui utilise l'intelligence artificielle **locale ou cloud** pour lire et analyser des rapports financiers automatiquement.
 
-## Fonctionnalités
+## ✨ Nouveauté : Modèles IA Locaux !
 
-- 📄 **Lecture multi-format** : Support des fichiers PDF, Excel (XLSX/XLS), et CSV
-- 🤖 **Analyse IA** : Utilise Claude AI pour extraire et analyser les données financières
+Utilisez vos propres modèles IA avec **Ollama** - **100% gratuit, rapide et privé** !
+
+Plus besoin de clé API ou de connexion internet. Vos données restent sur votre machine.
+
+## 🚀 Fonctionnalités
+
+- 📄 **Lecture multi-format** : PDF, Excel (XLSX/XLS), et CSV
+- 🤖 **IA Locale ou Cloud** :
+  - **Ollama** (local) : Mistral, Llama 3.1, Qwen, DeepSeek, CodeLlama, etc.
+  - **Open Interpreter** (local + exécution de code)
+  - **Claude AI** (cloud, optionnel)
 - 🧮 **Calculs automatiques** : Ratios financiers, marges, croissance, etc.
-- 📊 **Rapport détaillé** : Génération d'un rapport d'analyse complet
+- 📊 **Rapports détaillés** : Analyse complète avec recommandations
+- 💰 **100% Gratuit** : Avec les modèles locaux
+- 🔒 **Privé** : Vos données ne quittent jamais votre PC
 
-## Installation
+## 📥 Installation Rapide
 
-### 1. Installer Python 3.8+
-
-Assurez-vous d'avoir Python 3.8 ou plus récent installé.
-
-### 2. Installer les dépendances
+### Option 1 : IA Locale (Recommandé - Gratuit !)
 
 ```bash
+# 1. Installer Ollama (si pas déjà fait)
+curl -fsSL https://ollama.com/install.sh | sh
+
+# 2. Lancer Ollama
+ollama serve  # Dans un terminal séparé
+
+# 3. Installer les dépendances Python
 pip install -r requirements.txt
+
+# 4. C'est prêt ! Vos modèles sont déjà installés
+python financial_analyzer.py --list-models
 ```
 
-### 3. Configuration
-
-Créez un fichier `config.json` à partir de l'exemple :
+### Option 2 : IA Cloud (Anthropic Claude)
 
 ```bash
+# 1. Installer les dépendances
+pip install -r requirements.txt
+
+# 2. Configurer la clé API
 cp config.example.json config.json
+# Éditez config.json avec votre clé API Anthropic
 ```
 
-Éditez `config.json` et ajoutez votre clé API Anthropic :
+**👉 [Guide d'installation complet](INSTALLATION_RAPIDE.md)**
 
-```json
-{
-  "anthropic_api_key": "votre-clé-api-ici"
-}
-```
+## 🎯 Utilisation
 
-Pour obtenir une clé API gratuite : https://console.anthropic.com/
-
-## Utilisation
-
-### Analyse simple
+### Avec vos modèles locaux (par défaut)
 
 ```bash
+# Analyse simple avec le modèle par défaut
 python financial_analyzer.py rapport.pdf
+
+# Choisir un modèle spécifique
+python financial_analyzer.py rapport.pdf --model llama3.1:8b
+python financial_analyzer.py rapport.pdf --model mistral:7b-instruct
+python financial_analyzer.py rapport.pdf --model qwen2.5-coder:7b
+
+# Avec Open Interpreter (pour calculs avancés)
+python financial_analyzer.py rapport.pdf --backend open-interpreter
 ```
 
-### Avec options
+### Avec Claude AI (cloud)
 
 ```bash
-python financial_analyzer.py rapport.xlsx --output analyse.txt --format json
+python financial_analyzer.py rapport.pdf --backend anthropic
 ```
 
-### Options disponibles
+### Options avancées
 
-- `--output` : Fichier de sortie pour le rapport (défaut: console)
-- `--format` : Format de sortie (text/json, défaut: text)
-- `--calculations` : Types de calculs à effectuer (ratios/margins/growth/all)
+```bash
+# Calculer uniquement les ratios
+python financial_analyzer.py bilan.xlsx --calculations ratios
 
-## Exemples de calculs
+# Sauvegarder le résultat
+python financial_analyzer.py rapport.pdf --output analyse.txt
 
-Le programme peut calculer automatiquement :
+# Export JSON
+python financial_analyzer.py data.csv --format json --output resultat.json
 
-- **Ratios de liquidité** : Ratio courant, ratio rapide
-- **Ratios de rentabilité** : Marge brute, marge nette, ROE, ROA
-- **Ratios d'endettement** : Ratio dette/actifs, ratio de couverture
-- **Analyse de croissance** : Évolution du CA, des bénéfices
-- **Analyse des flux de trésorerie**
+# Lister les modèles disponibles
+python financial_analyzer.py --list-models
+```
 
-## Formats de rapports supportés
+## 📊 Modèles IA Recommandés
 
-- **PDF** : Rapports financiers, états financiers
-- **Excel** : Feuilles de calcul, bilans, compte de résultat
+Vous avez déjà ces modèles installés ! Voici lesquels utiliser :
+
+| Modèle | Usage | Commande |
+|--------|-------|----------|
+| **mistral:7b-instruct** | Analyse générale (excellent français) | `--model mistral:7b-instruct` |
+| **llama3.1:8b** | Performance maximale | `--model llama3.1:8b` |
+| **qwen2.5-coder:7b** | Calculs complexes | `--model qwen2.5-coder:7b` |
+| **deepseek-r1:8b** | Raisonnement approfondi | `--model deepseek-r1:8b` |
+| **codellama:7b** | Génération de code | `--model codellama:7b` |
+| **qwen2.5:7b** | Équilibre vitesse/qualité | `--model qwen2.5:7b` |
+
+## 🧮 Types de Calculs
+
+Le programme analyse et calcule automatiquement :
+
+### Ratios de Liquidité
+- Ratio courant (Current Ratio)
+- Ratio de liquidité réduite (Quick Ratio)
+- Ratio de trésorerie
+
+### Ratios de Rentabilité
+- Marge brute, nette, opérationnelle
+- Marge EBITDA
+- ROE (Return on Equity)
+- ROA (Return on Assets)
+- ROI (Return on Investment)
+
+### Ratios d'Endettement
+- Ratio dette/capitaux propres
+- Ratio dette/actifs
+- Ratio de couverture des intérêts
+
+### Analyse de Croissance
+- Évolution du chiffre d'affaires
+- Croissance des bénéfices
+- Taux de croissance annuel composé (CAGR)
+
+## 📄 Formats Supportés
+
+- **PDF** : Rapports annuels, états financiers, bilans
+- **Excel** (.xlsx, .xls) : Feuilles de calcul, tableaux financiers
 - **CSV** : Données tabulaires, exports comptables
+- **Texte** : Fichiers .txt avec données financières
 
-## Dépannage
+## 📚 Documentation
 
-### Erreur "API key not found"
-Vérifiez que le fichier `config.json` existe et contient votre clé API.
+- **[Installation Rapide](INSTALLATION_RAPIDE.md)** - Guide complet pour démarrer
+- **[Guide d'Utilisation](GUIDE_USAGE.md)** - Exemples détaillés et cas d'usage
+- **[Configuration](config.example.json)** - Options de configuration
 
-### Erreur lors de la lecture PDF
-Installez poppler-utils : `sudo apt-get install poppler-utils` (Linux)
+## 💡 Exemples
 
-## Licence
+### Analyser un bilan comptable
+
+```bash
+python financial_analyzer.py bilan_2024.xlsx \
+  --model llama3.1:8b \
+  --calculations all \
+  --output analyse_bilan.txt
+```
+
+### Analyser plusieurs rapports
+
+```bash
+#!/bin/bash
+for file in rapports/*.pdf; do
+    echo "Analyse: $file"
+    python financial_analyzer.py "$file" \
+      --model mistral:7b-instruct \
+      --calculations ratios \
+      --output "analyses/$(basename "$file" .pdf).txt"
+done
+```
+
+### Utiliser en Python
+
+```python
+from financial_analyzer import FinancialReportAnalyzer
+
+# Créer l'analyseur avec un modèle local
+analyzer = FinancialReportAnalyzer(
+    backend="ollama",
+    model="llama3.1:8b"
+)
+
+# Analyser un rapport
+results = analyzer.process_report("rapport.pdf", calculations="all")
+
+if results["success"]:
+    print(results["analysis"])
+```
+
+## 🔧 Dépannage
+
+### Ollama n'est pas en cours d'exécution
+```bash
+# Lancez Ollama dans un terminal séparé
+ollama serve
+```
+
+### Module ollama non trouvé
+```bash
+pip install ollama
+```
+
+### Lister les modèles disponibles
+```bash
+python financial_analyzer.py --list-models
+```
+
+### Télécharger un nouveau modèle
+```bash
+ollama pull mistral:7b-instruct
+```
+
+### Erreur lors de la lecture PDF (Linux)
+```bash
+sudo apt-get install poppler-utils
+```
+
+## 🌟 Avantages des Modèles Locaux
+
+✅ **Gratuit** - Aucun coût d'API
+✅ **Privé** - Vos données restent sur votre machine
+✅ **Rapide** - Pas de latence réseau
+✅ **Hors ligne** - Fonctionne sans internet
+✅ **Illimité** - Pas de limite d'utilisation
+✅ **Choix** - Plusieurs modèles disponibles
+
+## 🔗 Ressources
+
+- **Ollama** : https://ollama.ai
+- **Modèles disponibles** : https://ollama.ai/library
+- **Open Interpreter** : https://github.com/KillianLucas/open-interpreter
+- **Claude AI** (optionnel) : https://console.anthropic.com/
+
+## 📄 Licence
 
 MIT
+
+## 🤝 Support
+
+Pour toute question :
+1. Consultez [INSTALLATION_RAPIDE.md](INSTALLATION_RAPIDE.md)
+2. Consultez [GUIDE_USAGE.md](GUIDE_USAGE.md)
+3. Vérifiez que Ollama est lancé : `ollama serve`
+4. Listez vos modèles : `python financial_analyzer.py --list-models`
+
+---
+
+**Fait avec ❤️ pour analyser vos rapports financiers en toute confidentialité**

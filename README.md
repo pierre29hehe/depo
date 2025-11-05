@@ -2,13 +2,20 @@
 
 Programme Python qui utilise l'intelligence artificielle **locale ou cloud** pour lire et analyser des rapports financiers automatiquement.
 
-## ✨ Nouveauté : Modèles IA Locaux !
+## ✨ Nouveautés !
 
+### 🖥️ Interface Graphique Disponible !
+**Sélectionnez vos fichiers en quelques clics !** Interface intuitive avec navigation de dossiers.
+
+### 🤖 Modèles IA Locaux
 Utilisez vos propres modèles IA avec **Ollama** - **100% gratuit, rapide et privé** !
 
 Plus besoin de clé API ou de connexion internet. Vos données restent sur votre machine.
 
 ## 🚀 Fonctionnalités
+
+- 🖥️ **Interface Graphique** : Sélection facile de fichiers avec fenêtre de navigation
+- 📟 **Ligne de Commande** : Pour automatisation et scripts
 
 - 📄 **Lecture multi-format** : PDF, Excel (XLSX/XLS), et CSV
 - 🤖 **IA Locale ou Cloud** :
@@ -53,7 +60,35 @@ cp config.example.json config.json
 
 ## 🎯 Utilisation
 
-### Avec vos modèles locaux (par défaut)
+### 🖥️ Mode Interface Graphique (Recommandé pour débuter)
+
+**Le plus simple ! Sélectionnez vos fichiers avec une fenêtre de navigation.**
+
+```bash
+# Linux / macOS
+./lancer_interface.sh
+
+# Ou directement
+python3 financial_analyzer_gui.py
+```
+
+**Windows :** Double-cliquez sur `lancer_interface.bat`
+
+📖 **[Guide Interface Graphique Complet](INTERFACE_GRAPHIQUE.md)**
+
+**Fonctionnalités de l'interface :**
+- 📁 Sélection de fichiers par navigation visuelle
+- ⚙️ Configuration intuitive (backend, modèle, calculs)
+- 📊 Résultats en temps réel
+- 💾 Sauvegarde en un clic
+
+---
+
+### 📟 Mode Ligne de Commande
+
+**Pour automatisation et utilisateurs avancés**
+
+#### Avec vos modèles locaux (par défaut)
 
 ```bash
 # Analyse simple avec le modèle par défaut
@@ -138,8 +173,9 @@ Le programme analyse et calcule automatiquement :
 
 ## 📚 Documentation
 
+- **[Interface Graphique](INTERFACE_GRAPHIQUE.md)** - 🖥️ Guide de l'interface avec fenêtre de sélection
 - **[Installation Rapide](INSTALLATION_RAPIDE.md)** - Guide complet pour démarrer
-- **[Guide d'Utilisation](GUIDE_USAGE.md)** - Exemples détaillés et cas d'usage
+- **[Guide d'Utilisation CLI](GUIDE_USAGE.md)** - Exemples ligne de commande détaillés
 - **[Configuration](config.example.json)** - Options de configuration
 
 ## 💡 Exemples

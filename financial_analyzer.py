@@ -118,61 +118,6 @@ class OllamaBackend(AIBackend):
             }
 
 
-class OpenInterpreterBackend(AIBackend):
-    """Backend pour Open Interpreter"""
-
-    def __init__(self, model_name: str = "ollama/mistral:7b-instruct"):
-        super().__init__(model_name)
-        try:
-            import interpreter
-            self.interpreter = interpreter
-            self.interpreter.llm.model = model_name
-            self.interpreter.auto_run = True
-            self.interpreter.offline = True  # Mode local
-            self.available = True
-        except ImportError:
-            self.available = False
-            print("⚠️  Module interpreter non installé. Utilisez: pip install open-interpreter")
-
-    def analyze(self, prompt: str) -> Dict:
-        """Analyse avec Open Interpreter"""
-        if not self.available:
-            return {
-                "success": False,
-                "error": "Module open-interpreter non disponible"
-            }
-
-        try:
-            print(f"🤖 Analyse avec Open Interpreter ({self.model_name})...")
-
-            # Open Interpreter peut exécuter du code pour faire les calculs
-            enhanced_prompt = f"""
-{prompt}
-
-Si nécessaire, écris et exécute du code Python pour effectuer les calculs financiers.
-Utilise pandas, numpy pour les calculs complexes.
-"""
-
-            messages = self.interpreter.chat(enhanced_prompt, display=False, stream=False)
-
-            # Extraire le texte de la réponse
-            analysis_text = ""
-            for msg in messages:
-                if msg.get("type") == "message" and msg.get("role") == "assistant":
-                    analysis_text += msg.get("content", "")
-
-            return {
-                "success": True,
-                "analysis": analysis_text,
-                "model": self.model_name,
-                "backend": "open-interpreter"
-            }
-
-        except Exception as e:
-            return {
-                "success": False,
-                "error": f"Erreur Open Interpreter: {str(e)}"
-            }
 
 
 class AnthropicBackend(AIBackend):
@@ -235,7 +180,7 @@ class FinancialReportAnalyzer:
         Initialise l'analyseur
 
         Args:
-            backend: 'ollama', 'open-interpreter', ou 'anthropic'
+            backend: 'ollama' (local) ou 'anthropic' (cloud)
             model: Nom du modèle à utiliser
             api_key: Clé API (pour Anthropic)
         """
@@ -248,9 +193,6 @@ class FinancialReportAnalyzer:
         if backend == "ollama":
             model = model or config.get("default_model", "mistral:7b-instruct")
             self.backend = OllamaBackend(model)
-        elif backend == "open-interpreter":
-            model = model or f"ollama/{config.get('default_model', 'mistral:7b-instruct')}"
-            self.backend = OpenInterpreterBackend(model)
         elif backend == "anthropic":
             api_key = api_key or config.get("anthropic_api_key") or os.environ.get("ANTHROPIC_API_KEY")
             if not api_key:
@@ -258,7 +200,7 @@ class FinancialReportAnalyzer:
             model = model or config.get("anthropic_model", "claude-3-5-sonnet-20241022")
             self.backend = AnthropicBackend(api_key, model)
         else:
-            raise ValueError(f"Backend non supporté: {backend}")
+            raise ValueError(f"Backend non supporté: {backend}. Utilisez 'ollama' ou 'anthropic'")
 
     def _load_config(self) -> Dict:
         """Charge la configuration depuis config.json"""
@@ -513,20 +455,18 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Exemples:
-  # Avec Ollama (local - par défaut)
+  # Avec Ollama (local - par défaut, gratuit)
   python financial_analyzer.py rapport.pdf
   python financial_analyzer.py rapport.pdf --model llama3.1:8b
+  python financial_analyzer.py rapport.pdf --model qwen2.5-coder:7b
 
-  # Avec Open Interpreter
-  python financial_analyzer.py rapport.pdf --backend open-interpreter
-
-  # Avec Claude (cloud)
+  # Avec Claude AI (cloud, nécessite clé API)
   python financial_analyzer.py rapport.pdf --backend anthropic
 
   # Lister les modèles Ollama disponibles
   python financial_analyzer.py --list-models
 
-  # Avec options
+  # Avec options de calculs et sauvegarde
   python financial_analyzer.py bilan.xlsx --calculations ratios --output resultat.txt
         """
     )
@@ -539,9 +479,9 @@ Exemples:
 
     parser.add_argument(
         "--backend", "-b",
-        choices=["ollama", "open-interpreter", "anthropic"],
+        choices=["ollama", "anthropic"],
         default="ollama",
-        help="Backend IA à utiliser (défaut: ollama)"
+        help="Backend IA à utiliser (défaut: ollama - gratuit et local)"
     )
 
     parser.add_argument(

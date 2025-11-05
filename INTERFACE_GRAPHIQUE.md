@@ -46,11 +46,7 @@ Naviguez dans vos dossiers et sélectionnez votre rapport financier.
   - Vos données restent privées
   - Fonctionne hors ligne
 
-- ☑️ **Open Interpreter (Local + Code)**
-  - Peut exécuter du code pour calculs complexes
-  - Analyse plus approfondie
-
-- ☑️ **Claude AI (Cloud)**
+- ☑️ **Claude AI (Cloud)** - Optionnel
   - Nécessite une clé API
   - Très performant
 
@@ -108,7 +104,7 @@ Une fois l'analyse terminée :
 │                                                          │
 │  ⚙️ Configuration                                       │
 │  Backend IA:                                            │
-│  ○ Ollama  ○ Open Interpreter  ○ Claude AI             │
+│  ● Ollama (Local)    ○ Claude AI (Cloud)               │
 │                                                          │
 │  Modèle: [mistral:7b-instruct      ▼]                  │
 │  Calculs: [all - Analyse complète   ▼]                 │

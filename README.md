@@ -20,7 +20,6 @@ Plus besoin de clé API ou de connexion internet. Vos données restent sur votre
 - 📄 **Lecture multi-format** : PDF, Excel (XLSX/XLS), et CSV
 - 🤖 **IA Locale ou Cloud** :
   - **Ollama** (local) : Mistral, Llama 3.1, Qwen, DeepSeek, CodeLlama, etc.
-  - **Open Interpreter** (local + exécution de code)
   - **Claude AI** (cloud, optionnel)
 - 🧮 **Calculs automatiques** : Ratios financiers, marges, croissance, etc.
 - 📊 **Rapports détaillés** : Analyse complète avec recommandations
@@ -98,12 +97,9 @@ python financial_analyzer.py rapport.pdf
 python financial_analyzer.py rapport.pdf --model llama3.1:8b
 python financial_analyzer.py rapport.pdf --model mistral:7b-instruct
 python financial_analyzer.py rapport.pdf --model qwen2.5-coder:7b
-
-# Avec Open Interpreter (pour calculs avancés)
-python financial_analyzer.py rapport.pdf --backend open-interpreter
 ```
 
-### Avec Claude AI (cloud)
+### Avec Claude AI (cloud - optionnel)
 
 ```bash
 python financial_analyzer.py rapport.pdf --backend anthropic
@@ -261,7 +257,6 @@ sudo apt-get install poppler-utils
 
 - **Ollama** : https://ollama.ai
 - **Modèles disponibles** : https://ollama.ai/library
-- **Open Interpreter** : https://github.com/KillianLucas/open-interpreter
 - **Claude AI** (optionnel) : https://console.anthropic.com/
 
 ## 📄 Licence

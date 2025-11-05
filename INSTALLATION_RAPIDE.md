@@ -78,14 +78,6 @@ python financial_analyzer.py rapport.pdf --model qwen2.5-coder:7b
 python financial_analyzer.py rapport.pdf --model deepseek-r1:8b
 ```
 
-### Avec Open Interpreter (calculs avancés)
-
-```bash
-python financial_analyzer.py rapport.pdf --backend open-interpreter
-```
-
-Open Interpreter peut exécuter du code Python pour faire des calculs complexes !
-
 ### Sauvegarder le résultat
 
 ```bash
@@ -154,15 +146,6 @@ python financial_analyzer.py bilan.xlsx \
   --model llama3.1:8b \
   --calculations ratios \
   --output ratios_2024.txt
-```
-
-### Analyser avec Open Interpreter (calculs automatisés)
-
-```bash
-python financial_analyzer.py rapport.pdf \
-  --backend open-interpreter \
-  --calculations all \
-  --output analyse_complete.txt
 ```
 
 ### Analyse multiple (tous vos rapports)
@@ -262,7 +245,6 @@ else:
 
 - **Ollama**: https://ollama.ai
 - **Modèles disponibles**: https://ollama.ai/library
-- **Open Interpreter**: https://github.com/KillianLucas/open-interpreter
 
 ## ✨ Vous êtes prêt !
 

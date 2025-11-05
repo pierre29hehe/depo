@@ -101,8 +101,7 @@ class FinancialAnalyzerGUI:
 
         backends = [
             ("Ollama (Local - Gratuit)", "ollama"),
-            ("Open Interpreter (Local + Code)", "open-interpreter"),
-            ("Claude AI (Cloud)", "anthropic")
+            ("Claude AI (Cloud - Nécessite clé API)", "anthropic")
         ]
 
         for text, value in backends:
